@@ -18,7 +18,12 @@ jobs:
         response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://digital.nhs.uk/developer/api-catalogue/hello-world)
         echo "::set-output name=suggestions::$response"
 
-    - name: Display Code Suggestions
+    - name: Post Code Suggestions Comment
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "Code Suggestions:"
-        echo "${{ steps.code_suggestions.outputs.suggestions }}"
+        suggestions="${{ steps.code_suggestions.outputs.suggestions }}"
+        pr_number=${{ github.event.pull_request.number }}
+        repo=${{ github.repository }}
+        comment_body="### Code Suggestions\n$suggestions"
+        curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "{\"body\": \"$comment_body\"}" "https://api.github.com/repos/$repo/issues/$pr_number/comments"
