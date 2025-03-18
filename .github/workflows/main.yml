@@ -1,0 +1,24 @@
+name: Code Suggestions Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  suggest_code:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Call Code Suggestions API
+      id: code_suggestions
+      run: |
+        response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://digital.nhs.uk/developer/api-catalogue/hello-world)
+        echo "::set-output name=suggestions::$response"
+
+    - name: Display Code Suggestions
+      run: |
+        echo "Code Suggestions:"
+        echo "${{ steps.code_suggestions.outputs.suggestions }}"
