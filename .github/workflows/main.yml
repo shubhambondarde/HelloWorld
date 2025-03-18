@@ -15,7 +15,7 @@ jobs:
     - name: Call Code Suggestions API
       id: code_suggestions
       run: |
-        response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://digital.nhs.uk/developer/api-catalogue/hello-world)
+        response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://reqres.in/api/users/2)
         echo "::set-output name=suggestions::$response"
 
     - name: Post Code Suggestions Comment
