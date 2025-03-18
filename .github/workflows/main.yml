@@ -52,7 +52,7 @@ jobs:
       id: code_suggestions
       run: |
         code=$(cat code.txt)
-        response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"code\": \"$code\"}" https://xkcd.com/info.0.json)
+        response=$(curl -s -X GET -H "Content-Type: application/json" -d "{\"code\": \"$code\"}" https://xkcd.com/info.0.json)
         echo "API Response: $response"
         echo "$response" | jq '.' > suggestions.json
         echo "::set-output name=suggestions::$(cat suggestions.json)"
