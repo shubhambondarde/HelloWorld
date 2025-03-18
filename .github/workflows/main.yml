@@ -16,14 +16,17 @@ jobs:
       id: code_suggestions
       run: |
         response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://official-joke-api.appspot.com/random_joke)
-        echo "::set-output name=suggestions::$response"
+        echo "$response" | jq '.' > suggestions.json
+        echo "::set-output name=suggestions::$(cat suggestions.json)"
 
-    - name: Post Code Suggestions Comment
+    - name: Post Code Review Suggestions
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        suggestions="${{ steps.code_suggestions.outputs.suggestions }}"
+        suggestions=$(<suggestions.json)
         pr_number=${{ github.event.pull_request.number }}
         repo=${{ github.repository }}
-        comment_body="### Code Suggestions\n$suggestions"
-        curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "{\"body\": \"$comment_body\"}" "https://api.github.com/repos/$repo/issues/$pr_number/comments"
+        comments=$(echo "$suggestions" | jq -c '[.suggestions[] | {path: .file, position: .line, body: .text}]')
+        review_body="### Code Review Suggestions"
+        data=$(jq -n --arg event "COMMENT" --arg body "$review_body" --argjson comments "$comments" '{event: $event, body: $body, comments: $comments}')
+        curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "$data" "https://api.github.com/repos/$repo/pulls/$pr_number/reviews"
