@@ -12,10 +12,47 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
+    - name: Get Repository Information
+      id: repo_info
+      run: |
+        echo "::set-output name=repo_owner::${{ github.event.repository.owner.login }}"
+        echo "::set-output name=repo_name::${{ github.event.repository.name }}"
+        echo "::set-output name=sha::${{ github.event.pull_request.head.sha }}"
+
+    - name: Fetch Code from Commit
+      id: fetch_code
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        repo_owner=${{ steps.repo_info.outputs.repo_owner }}
+        repo_name=${{ steps.repo_info.outputs.repo_name }}
+        sha=${{ steps.repo_info.outputs.sha }}
+        
+        # Fetch the list of files changed in the commit
+        files=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                 "https://api.github.com/repos/$repo_owner/$repo_name/commits/$sha" | jq -r '.files[].filename')
+        
+        # Initialize an empty variable to store the file contents
+        code=""
+        
+        # Loop through each file and fetch its contents
+        for file in $files; do
+          file_content=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                         "https://api.github.com/repos/$repo_owner/$repo_name/contents/$file?ref=$sha" | jq -r '.content' | base64 --decode)
+          code="$code\n\n$file:\n$file_content"
+        done
+        
+        # Print the concatenated code for debugging
+        echo -e "$code"
+        
+        # Save the code to a file
+        echo -e "$code" > code.txt
+
     - name: Call Code Suggestions API
       id: code_suggestions
       run: |
-        response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://xkcd.com/info.0.json)
+        code=$(cat code.txt)
+        response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"code\": \"$code\"}" https://xkcd.com/info.0.json)
         echo "API Response: $response"
         echo "$response" | jq '.' > suggestions.json
         echo "::set-output name=suggestions::$(cat suggestions.json)"
