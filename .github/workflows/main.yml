@@ -15,7 +15,7 @@ jobs:
     - name: Call Code Suggestions API
       id: code_suggestions
       run: |
-        response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://yesno.wtf/api)
+        response=$(curl -X GET -H "Content-Type: application/json" -d '{"code": "${{ github.event.pull_request.head.sha }}"}' https://chroniclingamerica.loc.gov/search/titles/results/?terms=oakland&format=json&page=5)
         echo "::set-output name=suggestions::$response"
 
     - name: Post Code Suggestions Comment
