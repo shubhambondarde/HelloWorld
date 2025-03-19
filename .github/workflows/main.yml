@@ -64,7 +64,7 @@ jobs:
         suggestions="I will analyze this Java code and suggest a more sustainable version."
         pr_number=${{ github.event.pull_request.number }}
         repo=${{ github.repository }}
-        review_body="### Code Review Suggestions\n${suggestions}"
+        review_body=$(printf "### Code Review Suggestions\n%s" "$suggestions")
         data=$(jq -n --arg event "COMMENT" --arg body "$review_body" '{event: $event, body: $body}')
         echo "Review Data: $data"
         curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "$data" "https://api.github.com/repos/$repo/pulls/$pr_number/reviews"
