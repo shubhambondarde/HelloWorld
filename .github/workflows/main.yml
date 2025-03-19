@@ -61,7 +61,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        suggestions="I'll analyze this Java code and suggest a more sustainable version."
+        suggestions="I will analyze this Java code and suggest a more sustainable version."
         pr_number=${{ github.event.pull_request.number }}
         repo=${{ github.repository }}
         $review_body=$(printf "### Code Review Suggestions\n\`\`\`json\n%s\n\`\`\`" "$suggestions")
