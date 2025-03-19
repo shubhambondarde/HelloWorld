@@ -67,4 +67,4 @@ jobs:
         review_body=$(printf "### Code Review Suggestions\n%s" "$suggestions")
         data=$(jq -n --arg event "COMMENT" --arg body "$review_body" '{event: $event, body: $body}')
         echo "Review Data: $data"
-        curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "$data" "https://api.github.com/repos/$repo/pulls/$pr_number/reviews"
+        curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -X POST -d "$data" "https://api.github.com/repos/$repo/pulls/$pr_number/reviews"
